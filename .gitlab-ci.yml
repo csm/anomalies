@@ -8,4 +8,5 @@ unit-test-job:
   stage: test
   script:
     - npm i
+    - npm run lint
     - npm run coverage

@@ -38,7 +38,7 @@ function isCategory(value) {
         || value === 'NotFound' 
         || value === 'Conflict' 
         || value === 'Fault' 
-        || value === 'Busy' 
+        || value === 'Busy';
 }
 
 const statusCodes = {
