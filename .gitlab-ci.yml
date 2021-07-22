@@ -1,0 +1,13 @@
+stages:
+  - build
+  - test
+
+npm-i:
+  stage: build
+  script:
+    - npm i
+
+unit-test-job:
+  stage: test
+  script:
+    - npm run coverage
