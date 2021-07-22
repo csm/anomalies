@@ -3,6 +3,7 @@ image:
 
 stages:
   - test
+  - deploy
 
 unit-test-job:
   stage: test
@@ -10,3 +11,12 @@ unit-test-job:
     - npm i
     - npm run lint
     - npm run coverage
+
+npm-deploy:
+  stage: deploy
+  script:
+    - npm i
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >.npmrc
+    - npm publish
+  only:
+    - release
