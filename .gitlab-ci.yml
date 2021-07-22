@@ -1,0 +1,11 @@
+image:
+  name: node
+
+stages:
+  - test
+
+unit-test-job:
+  stage: test
+  script:
+    - npm i
+    - npm run coverage
