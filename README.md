@@ -65,3 +65,25 @@ will include your description and reason:
 let obj = anomalies.toObject({category: 'Fault', reason: 'MY_CUSTOM_REASON'});
 // returns {category: 'Fault', reason: 'MY_CUSTOM_REASON', error: 'My custom thing failed'}
 ```
+
+## API
+
+* `isRetriable`: tells if the argument passed in is a retriable error or not.
+    * Input: any value.
+    * Returns: boolean.
+* `isCategory`: tells if the argument passed in is a known anomaly category (a string).
+    * Input: any value.
+    * Returns: boolean.
+* `isAnomaly`: tells if the argument passed in is an anomaly.
+    * Input: any value.
+    * Returns: boolean.
+* `toObject`: flattens an anomaly, and populates reason and error fields if appropriate.
+    * Input: an anomaly.
+    * Returns: an object describing the anomaly.
+* `toResponse`: return an HTTP style response object for an anomaly.
+    * Input: any object (expects an anomaly, however).
+    * Returns: an object with `statusCode` and `body` set appropriately for the argument.
+* `registerReason`: register a custom error code with a human-readable description.
+    * Inputs:
+        * Your custom error code (usually a string, but may be whatever you like).
+        * A description string of your custom error code.
