@@ -1,5 +1,7 @@
 # anomalies
 
+[![npm version](https://badge.fury.io/js/anomalies.svg)](https://badge.fury.io/js/anomalies)
+
 This is a simple node.js library inspired by
 [Cognitect's Clojure micro-library](https://github.com/cognitect-labs/anomalies).
 
