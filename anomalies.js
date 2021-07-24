@@ -134,7 +134,7 @@ function toResponse(anomaly, asImmutable = false) {
         anomaly = {category: 'Fault'};
     }
     let category;
-    if (immutable !== null && immutable.isMap(anomaly)) {
+    if (immutable !== undefined && immutable.isMap(anomaly)) {
         category = anomaly.get('category');
     } else {
         category = anomaly.category;
