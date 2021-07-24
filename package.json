@@ -1,6 +1,6 @@
 {
   "name": "anomalies",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Generic error categorization micro-library.",
   "main": "anomalies.js",
   "scripts": {
