@@ -2,6 +2,13 @@
 // Purpose is to reify the specification of errors to a standard format,
 // with support for returning these errors as meaningful HTTP responses.
 
+let immutable;
+try {
+    immutable = require('immutable');
+} catch (e) {
+    // pass, no immutable
+}
+
 // User-supplied reason descriptions.
 let descriptions = {};
 
@@ -18,7 +25,11 @@ let descriptions = {};
  */
 function isRetriable(value) {
     if (isAnomaly(value)) {
-        value = value.category;
+        if (immutable !== undefined && immutable.isMap(value)) {
+            value = value.get('category');
+        } else {
+            value = value.category;
+        }
     }
     return value === 'Unavailable' || value === 'Interrupted' || value === 'Busy';
 }
@@ -60,6 +71,8 @@ const statusCodes = {
  * @returns True if the argument is an anomaly.
  */
 function isAnomaly(value) {
+    if (immutable !== undefined && immutable.isMap(value) && isCategory(value.get('category')))
+        return true;
     return value != null && Object.prototype.hasOwnProperty.call(value, 'category') && isCategory(value['category']);
 }
 
@@ -72,7 +85,15 @@ function isAnomaly(value) {
  * @param {Object} anomaly 
  * @returns The anomaly object.
  */
-function toObject(anomaly) {
+function toObject(anomaly, asImmutable = false) {
+    if (typeof anomaly !== 'object') {
+        throw Error('argument is not an object');
+    }
+    if (immutable !== undefined) {
+        if (immutable.isMap(anomaly)) {
+            anomaly = anomaly.toJS();
+        }
+    }
     let value = {};
     if (typeof anomaly.data == 'object') {
         value = Object.assign({}, anomaly.data);
@@ -89,6 +110,12 @@ function toObject(anomaly) {
             value.error = description;
         }
     }
+    if (asImmutable) {
+        if (immutable === undefined) {
+            throw Error('immutable not available');
+        }
+        return immutable.Map(value);
+    }
     return value;
 }
 
@@ -102,14 +129,27 @@ function toObject(anomaly) {
  * @param {Object} anomaly The anomaly, or other error object.
  * @returns The HTTP response object.
  */
-function toResponse(anomaly) {
+function toResponse(anomaly, asImmutable = false) {
     if (!this.isAnomaly(anomaly)) {
         anomaly = {category: 'Fault'};
     }
-    return {
-        statusCode: statusCodes[anomaly.category],
+    let category;
+    if (immutable !== null && immutable.isMap(anomaly)) {
+        category = anomaly.get('category');
+    } else {
+        category = anomaly.category;
+    }
+    let result = {
+        statusCode: statusCodes[category],
         body: JSON.stringify(toObject(anomaly))
     };
+    if (asImmutable) {
+        if (immutable === undefined) {
+            throw Error('immutable not available');
+        }
+        return immutable.Map(result);
+    }
+    return result;
 }
 
 /**

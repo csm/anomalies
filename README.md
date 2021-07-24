@@ -87,3 +87,10 @@ let obj = anomalies.toObject({category: 'Fault', reason: 'MY_CUSTOM_REASON'});
     * Inputs:
         * Your custom error code (usually a string, but may be whatever you like).
         * A description string of your custom error code.
+
+## Immutable Values
+
+This library can optionally support [immutable](https://www.npmjs.com/package/immutable)
+data structures, by passing in a immutable Map to `isAnomaly` or `isRetriable`, and you
+can get an immutable value from `toObject` or `toResponse` if you pass a second argument
+`asImmutable = true`.

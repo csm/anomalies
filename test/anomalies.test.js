@@ -1,70 +1,104 @@
 let anomalies = require('../anomalies');
 let assert = require('assert');
+let immutable = require('immutable');
 
 describe('isRetriable', function() {
-    assert.strictEqual(anomalies.isRetriable('Unavailable'), true);
-    assert.strictEqual(anomalies.isRetriable('Interrupted'), true);
-    assert.strictEqual(anomalies.isRetriable('Incorrect'), false);
-    assert.strictEqual(anomalies.isRetriable('Forbidden'), false);
-    assert.strictEqual(anomalies.isRetriable('Unsupported'), false);
-    assert.strictEqual(anomalies.isRetriable('NotFound'), false);
-    assert.strictEqual(anomalies.isRetriable('Conflict'), false);
-    assert.strictEqual(anomalies.isRetriable('Fault'), false);
-    assert.strictEqual(anomalies.isRetriable('Busy'), true);
+    it('tells if categories are retriable', () => {
+        assert.strictEqual(anomalies.isRetriable('Unavailable'), true);
+        assert.strictEqual(anomalies.isRetriable('Interrupted'), true);
+        assert.strictEqual(anomalies.isRetriable('Incorrect'), false);
+        assert.strictEqual(anomalies.isRetriable('Forbidden'), false);
+        assert.strictEqual(anomalies.isRetriable('Unsupported'), false);
+        assert.strictEqual(anomalies.isRetriable('NotFound'), false);
+        assert.strictEqual(anomalies.isRetriable('Conflict'), false);
+        assert.strictEqual(anomalies.isRetriable('Fault'), false);
+        assert.strictEqual(anomalies.isRetriable('Busy'), true);
 
-    assert.strictEqual(anomalies.isRetriable({category: 'Busy'}), true);
+        assert.strictEqual(anomalies.isRetriable({category: 'Busy'}), true);
+
+        assert.strictEqual(anomalies.isRetriable(immutable.Map({category: 'Busy'})), true);
+    })
 });
 
 describe('toObject', function() {
-    assert.deepStrictEqual(anomalies.toObject({category: 'Fault', data: {error: 'Some Fault'}}),
-        {
+    it('converts anomalies to objects', function() {
+        assert.deepStrictEqual(anomalies.toObject({category: 'Fault', data: {error: 'Some Fault'}}),
+            {
+                category: 'Fault',
+                message: undefined,
+                retriable: false,
+                error: 'Some Fault',
+            });
+
+        let anom = immutable.Map({
+            category: 'Fault',
+            data: {error: 'Some Fault'}
+        });
+        let obj = immutable.Map({
             category: 'Fault',
             message: undefined,
             retriable: false,
             error: 'Some Fault',
-        });
+        })
+        assert.deepStrictEqual(anomalies.toObject(anom, true).toJS(), obj.toJS());
+    });
 });
 
 describe('toResponse', function () {
-    assert.deepStrictEqual(anomalies.toResponse(new Error('some error')), {
-        statusCode: 500,
-        body: JSON.stringify({
-            category: 'Fault',
-            message: undefined,
-            retriable: false,
-        }),
-    });
+    it('converts anomalies to responses', function() {
+        assert.deepStrictEqual(anomalies.toResponse(new Error('some error')), {
+            statusCode: 500,
+            body: JSON.stringify({
+                category: 'Fault',
+                message: undefined,
+                retriable: false,
+            }),
+        });
 
-    assert.deepStrictEqual(anomalies.toResponse({category: 'Busy'}),
-        {
+        assert.deepStrictEqual(anomalies.toResponse({category: 'Busy'}),
+            {
+                statusCode: 500,
+                body: JSON.stringify({
+                    category: 'Busy',
+                    message: undefined,
+                    retriable: true,
+                })
+            }
+        );
+
+        let anom = immutable.Map({category: 'Busy'});
+        let obj = immutable.Map({
             statusCode: 500,
             body: JSON.stringify({
                 category: 'Busy',
                 message: undefined,
                 retriable: true,
             })
-        }
-    );
+        });
+        assert.deepStrictEqual(anomalies.toResponse(anom, true).toJS(), obj.toJS());
+    });
 });
 
 describe('registerReason', function() {
-    anomalies.registerReason('CUSTOM_ERROR', 'Something bad happened!');
-    assert.deepStrictEqual(anomalies.toObject({category: 'Fault', reason: 'CUSTOM_ERROR'}),
-        {
-            category: 'Fault',
-            message: undefined,
-            retriable: false,
-            reason: 'CUSTOM_ERROR',
-            error: 'Something bad happened!',
-        }
-    );
+    it('includes custom reason descriptions', function() {
+        anomalies.registerReason('CUSTOM_ERROR', 'Something bad happened!');
+        assert.deepStrictEqual(anomalies.toObject({category: 'Fault', reason: 'CUSTOM_ERROR'}),
+            {
+                category: 'Fault',
+                message: undefined,
+                retriable: false,
+                reason: 'CUSTOM_ERROR',
+                error: 'Something bad happened!',
+            }
+        );
 
-    assert.deepStrictEqual(anomalies.toObject({category: 'Fault', reason: 'UNREGISTERED_REASON'}),
-        {
-            category: 'Fault',
-            message: undefined,
-            retriable: false,
-            reason: 'UNREGISTERED_REASON',
-        }
-    );
+        assert.deepStrictEqual(anomalies.toObject({category: 'Fault', reason: 'UNREGISTERED_REASON'}),
+            {
+                category: 'Fault',
+                message: undefined,
+                retriable: false,
+                reason: 'UNREGISTERED_REASON',
+            }
+        );
+    });
 });
