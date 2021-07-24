@@ -22,6 +22,13 @@ describe('isRetriable', function() {
 
 describe('toObject', function() {
     it('converts anomalies to objects', function() {
+        try {
+            anomalies.toObject(42);
+            assert.fail();
+        } catch (e) {
+            assert.ok(true);
+        }
+
         assert.deepStrictEqual(anomalies.toObject({category: 'Fault', data: {error: 'Some Fault'}}),
             {
                 category: 'Fault',
