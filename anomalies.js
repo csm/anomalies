@@ -77,6 +77,40 @@ function isAnomaly(value) {
 }
 
 /**
+ * Convert any value to an anomaly. Used to ensure a value is an anomaly.
+ * 
+ * If already an anomaly, returns value.
+ * 
+ * Otherwise, returns an anomaly with category Fault. If value is an instance
+ * of Error, the returned anomaly will also have a message field with the
+ * value of the error's message.
+ * 
+ * @param {*} value 
+ * @returns An anomaly object.
+ */
+function toAnomaly(value) {
+    if (!isAnomaly(value)) {
+        let conv;
+        if (value instanceof Error) {
+            conv = {
+                category: 'Fault',
+                message: value.message,
+            };
+        } else {
+            conv = {
+                category: 'Fault'
+            };
+        }
+        if (immutable != null && immutable.isImmutable(value)) {
+            value = immutable.fromJS(conv);
+        } else {
+            value = conv;
+        }
+    }
+    return value;
+}
+
+/**
  * Convert an anomaly to an object.
  * 
  * This is generally useful for converting an anomaly to a shallow object
@@ -94,6 +128,7 @@ function toObject(anomaly, asImmutable = false) {
             anomaly = anomaly.toJS();
         }
     }
+    anomaly = toAnomaly(anomaly);
     let value = {};
     if (typeof anomaly.data == 'object') {
         value = Object.assign({}, anomaly.data);
@@ -114,7 +149,7 @@ function toObject(anomaly, asImmutable = false) {
         if (immutable === undefined) {
             throw Error('immutable not available');
         }
-        return immutable.Map(value);
+        return immutable.fromJS(value);
     }
     return value;
 }
@@ -130,9 +165,7 @@ function toObject(anomaly, asImmutable = false) {
  * @returns The HTTP response object.
  */
 function toResponse(anomaly, asImmutable = false) {
-    if (!this.isAnomaly(anomaly)) {
-        anomaly = {category: 'Fault'};
-    }
+    anomaly = toAnomaly(anomaly);
     let category;
     if (immutable !== undefined && immutable.isMap(anomaly)) {
         category = anomaly.get('category');
@@ -147,7 +180,7 @@ function toResponse(anomaly, asImmutable = false) {
         if (immutable === undefined) {
             throw Error('immutable not available');
         }
-        return immutable.Map(result);
+        return immutable.fromJS(result);
     }
     return result;
 }
@@ -177,6 +210,7 @@ module.exports = {
     isCategory: isCategory,
     isRetriable: isRetriable,
     isAnomaly: isAnomaly,
+    toAnomaly: toAnomaly,
     toObject: toObject,
     toResponse: toResponse,
     registerReason: registerReason,

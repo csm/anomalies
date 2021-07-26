@@ -89,6 +89,11 @@ let obj = anomalies.toObject({category: 'Fault', reason: 'MY_CUSTOM_REASON'});
     * Inputs:
         * Your custom error code (usually a string, but may be whatever you like).
         * A description string of your custom error code.
+* `toAnomaly`: ensure a value is an anomaly.
+    * Input: any value.
+    * Output: an anomaly; if already an anomaly, returns the input. If an instance of
+      `Error`, returns an anomaly with category `Fault` and `message` set to the
+      message field of the error. Otherwise, returns an anomaly with category `Fault`.
 
 ## Immutable Values
 
