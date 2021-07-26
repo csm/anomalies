@@ -57,7 +57,7 @@ describe('toResponse', function () {
             statusCode: 500,
             body: JSON.stringify({
                 category: 'Fault',
-                message: undefined,
+                message: 'some error',
                 retriable: false,
             }),
         });
@@ -109,3 +109,20 @@ describe('registerReason', function() {
         );
     });
 });
+
+describe('toAnomaly', function() {
+    it('converts values to anomalies', function() {
+        assert.deepStrictEqual(anomalies.toAnomaly('anything'), {category: 'Fault'});
+        assert.deepStrictEqual(anomalies.toAnomaly(new Error('an error')), {category: 'Fault', message: 'an error'});
+        let anom = {
+            category: 'Busy',
+            message: 'try again later'
+        };
+        assert.strictEqual(anom, anomalies.toAnomaly(anom));
+
+        anom = immutable.fromJS(anom);
+        assert.deepStrictEqual(immutable.is(anom, anomalies.toAnomaly(anom)), true);
+
+        assert.deepStrictEqual(immutable.is(immutable.Map({category: 'Fault'}), anomalies.toAnomaly(immutable.List())), true);
+    });
+})
